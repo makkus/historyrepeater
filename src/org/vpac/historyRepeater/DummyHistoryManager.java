@@ -8,6 +8,8 @@ import java.util.Map;
 import org.vpac.historyRepeater.model.HistoryNode;
 
 public class DummyHistoryManager implements HistoryManager {
+	
+	private boolean debug = false;
 
 	public Map<String, HistoryNode> nodes = new HashMap<String, HistoryNode>();
 	
@@ -15,18 +17,31 @@ public class DummyHistoryManager implements HistoryManager {
 	
 	public DummyHistoryManager() {
 		
+		if ( debug ) {
+			this.addHistoryEntry("submissionEmail", "markus@vpac.org");
+			this.addHistoryEntry("submissionEmailChecked", "true");
+		}
+		
+	}
+	
+	public void addHistoryEntry(String key, String entry) {
+		
+		addHistoryEntry(key, entry, new Date());
+		
 	}
 	
 	public void addHistoryEntry(String key, String entry, Date date) {
 		
-		getHistoryNode(key).addEntry(entry, date);
+		addHistoryEntry(key, entry, date, -1);
 		
 	}
 
 	public void addHistoryEntry(String key, String entry, Date date,
 			int numberOfEntriesForParentNode) {
 		
-		getHistoryNode(key).setNumberOfEntries(numberOfEntriesForParentNode);
+		if ( numberOfEntriesForParentNode > 0 ) {
+			getHistoryNode(key).setMaxNumberOfEntries(numberOfEntriesForParentNode);
+		}
 		getHistoryNode(key).addEntry(entry, date);
 
 	}
@@ -35,18 +50,20 @@ public class DummyHistoryManager implements HistoryManager {
 		return defaultNumberOfEntries;
 	}
 
-	public HistoryNode getHistoryNode(String key) {
+	private HistoryNode getHistoryNode(String key) {
 		
 		HistoryNode node = nodes.get(key);
 		
 		if ( node == null ) {
 			node = new HistoryNode(defaultNumberOfEntries);
-			node.addEntry("entry1", new Date());
-			node.addEntry("entry2", new Date());
-			node.addEntry("entry3", new Date());
-			node.addEntry("entry4", new Date());
-			node.addEntry("entry5", new Date());
-			node.addEntry("entry6", new Date());
+			if ( debug ) {
+				node.addEntry("entry_youngest", new Date(new Date().getTime()-30000));
+				node.addEntry("entry_2nd_youngest", new Date(new Date().getTime()-35000));
+				node.addEntry("entry_medium", new Date(new Date().getTime()-40000));
+				node.addEntry("entry_2nd_oldest", new Date(new Date().getTime()-45000));
+				node.addEntry("entry_oldest", new Date(new Date().getTime()-50000));
+			}
+			nodes.put(key, node);
 		}
 		
 		return node;
@@ -58,6 +75,18 @@ public class DummyHistoryManager implements HistoryManager {
 
 	public void setDefaultNumberOfEntriesPerNode(int i) {
 		defaultNumberOfEntries = i;
+	}
+
+	public int getMaxNumberOfEntries(String key) {
+		return getHistoryNode(key).getNumberOfEntries();
+	}
+
+	public void setMaxNumberOfEntries(String key, int max) {
+		getHistoryNode(key).setMaxNumberOfEntries(max);
+	}
+	
+	public List<String> getEntries(String key) {
+		return getHistoryNode(key).getEntries();
 	}
 
 }

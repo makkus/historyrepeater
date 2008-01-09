@@ -15,16 +15,23 @@ public class HistoryNode {
 	
 	private SortedMap<Date, String> entries = new TreeMap<Date, String>();
 	
-	public HistoryNode() {
+	private HistoryManager manager = null;
+	
+	public HistoryNode(HistoryManager manager) {
+		this.manager = null;
 	}
 	
 	public HistoryNode(int numberOfEntries) {
 		this.numberOfEntries = numberOfEntries;
 	}
 	
-	public void setNumberOfEntries(int number) {
+	public void setMaxNumberOfEntries(int number) {
 		this.numberOfEntries = number;
 		pack();
+	}
+	
+	public int getNumberOfEntries() {
+		return this.entries.size();
 	}
 	
 	private void pack() {
@@ -35,16 +42,25 @@ public class HistoryNode {
 			
 			Date[] allDates = entries.keySet().toArray(new Date[]{});
 			Date firstEntry = allDates[sizeEntries-numberOfEntries];
-			Date lastEntry = allDates[sizeEntries-1];
-			entries = entries.subMap(firstEntry, lastEntry);
+
+			entries = entries.tailMap(firstEntry);
 		}
+		
 	}
 	
 	public void addEntry(String entry, Date dateOfEntry) {
 		
-		if ( entries.containsValue(entry) )
-			return;
-		
+		if ( entries.containsValue(entry) ) {
+			Date keyToDelete = null;
+			for ( Date key : entries.keySet() ) {
+				if ( entries.get(key).equals(entry) ) {
+					keyToDelete = key;
+					break;
+				}
+			}
+			entries.remove(keyToDelete);
+		}
+
 		entries.put(dateOfEntry, entry);
 		
 		pack();
@@ -61,6 +77,20 @@ public class HistoryNode {
 		
 		for ( String entry : entries.values() ) {
 			result.add(entry);
+		}
+		return result;
+	}
+	
+	/**
+	 * Returns the last entry for this node or null if there is no entry
+	 * @return the last entry or null
+	 */
+	public String getLastEntry() {
+		String result = null;
+		try {
+		result = entries.get(entries.lastKey());
+		} catch (Exception e) {
+			return null;
 		}
 		return result;
 	}
