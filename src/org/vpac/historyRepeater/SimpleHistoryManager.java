@@ -8,6 +8,7 @@ import java.util.Map;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.log4j.Logger;
 import org.vpac.historyRepeater.model.HistoryNode;
 
 /**
@@ -19,6 +20,8 @@ import org.vpac.historyRepeater.model.HistoryNode;
  */
 public class SimpleHistoryManager implements HistoryManager {
 	
+	static final Logger myLogger = Logger.getLogger(SimpleHistoryManager.class.getName());
+	
 	public Map<String, HistoryNode> nodes = new HashMap<String, HistoryNode>();
 	
 	PropertiesConfiguration config = null;
@@ -27,8 +30,10 @@ public class SimpleHistoryManager implements HistoryManager {
 	
 	public SimpleHistoryManager(File configFile) {
 		try {
-			config = new PropertiesConfiguration(configFile);
+			config = new PropertiesConfiguration();
 			config.setDelimiterParsingDisabled(true);
+			config.load(configFile);
+			config.setFile(configFile);
 			config.setAutoSave(true);
 		} catch (ConfigurationException e) {
 			// TODO Auto-generated catch block
@@ -46,6 +51,9 @@ public class SimpleHistoryManager implements HistoryManager {
 
 	public void addHistoryEntry(String key, String entry, Date date,
 			int numberOfEntriesForParentNode) {
+		
+		if ( entry == null || "".equals(entry.trim()) ) 
+			return;
 		
 		if ( numberOfEntriesForParentNode > 0 ) {
 			getHistoryNode(key).setMaxNumberOfEntries(numberOfEntriesForParentNode);
@@ -96,7 +104,14 @@ public class SimpleHistoryManager implements HistoryManager {
 			
 			for ( String entry : entries ) {
 				int index = entry.indexOf(",");
-				Long date = Long.parseLong(entry.substring(0,index));
+				if ( index == -1 ) continue;
+				Long date;
+				try {
+					date = Long.parseLong(entry.substring(0,index));
+				} catch (Exception e) {
+					myLogger.warn("Could not parse date of entry: "+entry+". Returning null value");
+					continue;
+				}
 				String value = entry.substring(index+1);
 				node.addEntry(value, new Date(date));
 			}
