@@ -3,21 +3,22 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.vpac.historyRepeater</groupId>
 	<artifactId>historyRepeater</artifactId>
-	<version>0.1</version>
+	<version>0.2</version>
 	<description></description>
-	<build>
-		<plugins>
-			<plugin>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<configuration>
-					<source>1.5</source>
-					<target>1.5</target>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
-	<dependencies>
 
+	<properties>
+		<maven.test.skip>true</maven.test.skip>
+	</properties>
+
+	<repositories>
+		<repository>
+			<id>vpac</id>
+			<url>http://hudson.vpac.org/maven_repository
+			</url>
+		</repository>
+	</repositories>
+
+	<dependencies>
 		<dependency>
 			<groupId>commons-configuration</groupId>
 			<artifactId>commons-configuration</artifactId>
@@ -52,7 +53,17 @@
 			<version>1.2.9</version>
 		</dependency>
 	</dependencies>
-	<properties>
-		<maven.test.skip>true</maven.test.skip>
-	</properties>
+
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.5</source>
+					<target>1.5</target>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
 </project>
