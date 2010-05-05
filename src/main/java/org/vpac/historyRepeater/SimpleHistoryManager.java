@@ -27,8 +27,6 @@ public class SimpleHistoryManager implements HistoryManager {
 
 	PropertiesConfiguration config = null;
 
-	private final int defaultNumberOfEntries = DEFAULT_NUMBER_OF_ENTRIES;
-
 	public SimpleHistoryManager(File configFile) {
 		try {
 			config = new PropertiesConfiguration();
@@ -79,7 +77,7 @@ public class SimpleHistoryManager implements HistoryManager {
 
 	public int getDefaultNumberOfEntriesPerNode() {
 		try {
-			int def = config.getInt("default_max");
+			int def = config.getInt("default_maximum_entries");
 			return def;
 		} catch (Exception e) {
 			config.clearProperty("default_max");
@@ -99,7 +97,8 @@ public class SimpleHistoryManager implements HistoryManager {
 		if (node == null) {
 
 			String[] entries = config.getStringArray(key);
-			int maxEntries = getDefaultNumberOfEntriesPerNode();
+			
+			int maxEntries = getMaxNumberOfEntries(key);
 			// try {
 			// maxEntries = config.getInt(key+"_max");
 			// } catch (Exception e) {
@@ -133,28 +132,32 @@ public class SimpleHistoryManager implements HistoryManager {
 	}
 
 	public String getLastEntry(String key) {
-		return getEntries(key).get(getEntries(key).size() - 1);
-	}
-
-	public int getMaxNumberOfEntries(String key) {
-
-		int max = -1;
-		max = getHistoryNode(key).getNumberOfEntries();
-		// config.clearProperty(key+"_max");
-		// config.setProperty(key+"_max", max);
-		return max;
+		return getEntries(key).get(0);
 	}
 
 	public void setDefaultNumberOfEntriesPerNode(int i) {
-		config.clearProperty("default_max");
-		config.setProperty("default_max", i);
-
+		config.clearProperty("default_maximum_entries");
+		config.setProperty("default_maximum_entries", i);
 	}
-
+	
 	public void setMaxNumberOfEntries(String key, int max) {
 		getHistoryNode(key).setMaxNumberOfEntries(max);
-		// config.clearProperty(key+"_max");
-		// config.setProperty(key+"_max", max);
+
+		config.clearProperty("default_max_"+key);
+		config.setProperty("default_max_"+key, max);
+		
+	}
+	
+	public int getMaxNumberOfEntries(String key) {
+		if ( nodes.get(key) != null ) {
+			return nodes.get(key).getMaxNumberOfEntries();
+		}
+		int entries = config.getInt("default_max_"+key, -1);
+		if ( entries <= 0 ) {
+			return getDefaultNumberOfEntriesPerNode();
+		} else {
+			return entries;
+		}
 	}
 
 }

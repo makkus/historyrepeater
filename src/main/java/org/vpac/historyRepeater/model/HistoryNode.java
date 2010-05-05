@@ -1,5 +1,6 @@
 package org.vpac.historyRepeater.model;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -15,14 +16,18 @@ public class HistoryNode {
 	
 	private SortedMap<Date, String> entries = new TreeMap<Date, String>();
 	
-	private HistoryManager manager = null;
-	
-	public HistoryNode(HistoryManager manager) {
-		this.manager = null;
-	}
+//	private HistoryManager manager = null;
+//	
+//	public HistoryNode(HistoryManager manager) {
+//		this.manager = manager;
+//	}
 	
 	public HistoryNode(int numberOfEntries) {
 		this.numberOfEntries = numberOfEntries;
+	}
+	
+	public int getMaxNumberOfEntries() {
+		return this.numberOfEntries;
 	}
 	
 	public void setMaxNumberOfEntries(int number) {
@@ -78,6 +83,7 @@ public class HistoryNode {
 		for ( String entry : entries.values() ) {
 			result.add(entry);
 		}
+		Collections.reverse(result);
 		return result;
 	}
 	
