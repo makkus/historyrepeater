@@ -12,22 +12,23 @@ import org.apache.log4j.Logger;
 import org.vpac.historyRepeater.model.HistoryNode;
 
 /**
- * Just a quick and dirty implementation of the history interface.
- * Let's see whether there are proplems.
+ * Just a quick and dirty implementation of the history interface. Let's see
+ * whether there are proplems.
  * 
  * @author Markus Binsteiner
- *
+ * 
  */
 public class SimpleHistoryManager implements HistoryManager {
-	
-	static final Logger myLogger = Logger.getLogger(SimpleHistoryManager.class.getName());
-	
+
+	static final Logger myLogger = Logger.getLogger(SimpleHistoryManager.class
+			.getName());
+
 	public Map<String, HistoryNode> nodes = new HashMap<String, HistoryNode>();
-	
+
 	PropertiesConfiguration config = null;
-	
-	private int defaultNumberOfEntries = DEFAULT_NUMBER_OF_ENTRIES;
-	
+
+	private final int defaultNumberOfEntries = DEFAULT_NUMBER_OF_ENTRIES;
+
 	public SimpleHistoryManager(File configFile) {
 		try {
 			config = new PropertiesConfiguration();
@@ -40,7 +41,7 @@ public class SimpleHistoryManager implements HistoryManager {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public void addHistoryEntry(String key, String entry) {
 		addHistoryEntry(key, entry, new Date());
 	}
@@ -51,28 +52,30 @@ public class SimpleHistoryManager implements HistoryManager {
 
 	public void addHistoryEntry(String key, String entry, Date date,
 			int numberOfEntriesForParentNode) {
-		
-		if ( entry == null || "".equals(entry.trim()) ) 
+
+		if (entry == null || "".equals(entry.trim())) {
 			return;
-		
-		if ( numberOfEntriesForParentNode > 0 ) {
-			getHistoryNode(key).setMaxNumberOfEntries(numberOfEntriesForParentNode);
-//			config.addProperty(key+"_max", numberOfEntriesForParentNode);
+		}
+
+		if (numberOfEntriesForParentNode > 0) {
+			getHistoryNode(key).setMaxNumberOfEntries(
+					numberOfEntriesForParentNode);
+			// config.addProperty(key+"_max", numberOfEntriesForParentNode);
 		}
 		getHistoryNode(key).addEntry(entry, date);
-		
+
 		config.clearProperty(key);
 		String[] new_prop = new String[getHistoryNode(key).getEntries().size()];
 		int i = 0;
-		for ( Date dateKey : getHistoryNode(key).getEntriesMap().keySet() ) {
-			new_prop[i] = new Long(dateKey.getTime()).toString()+","+getHistoryNode(key).getEntriesMap().get(dateKey);
+		for (Date dateKey : getHistoryNode(key).getEntriesMap().keySet()) {
+			new_prop[i] = new Long(dateKey.getTime()).toString() + ","
+					+ getHistoryNode(key).getEntriesMap().get(dateKey);
 
-			config.addProperty(key, new_prop[i]);			
+			config.addProperty(key, new_prop[i]);
 			i++;
 		}
 
 	}
-	
 
 	public int getDefaultNumberOfEntriesPerNode() {
 		try {
@@ -85,66 +88,73 @@ public class SimpleHistoryManager implements HistoryManager {
 		}
 	}
 
+	public List<String> getEntries(String key) {
+		return getHistoryNode(key).getEntries();
+	}
+
 	private HistoryNode getHistoryNode(String key) {
-		
+
 		HistoryNode node = nodes.get(key);
-		
-		if ( node == null ) {
-			
+
+		if (node == null) {
+
 			String[] entries = config.getStringArray(key);
 			int maxEntries = getDefaultNumberOfEntriesPerNode();
-//			try {
-//				maxEntries = config.getInt(key+"_max");
-//			} catch (Exception e) {
-//				config.clearProperty(key+"_max");
-//				config.setProperty(key+"_max", maxEntries);
-//			}
-			
+			// try {
+			// maxEntries = config.getInt(key+"_max");
+			// } catch (Exception e) {
+			// config.clearProperty(key+"_max");
+			// config.setProperty(key+"_max", maxEntries);
+			// }
+
 			node = new HistoryNode(maxEntries);
-			
-			for ( String entry : entries ) {
+
+			for (String entry : entries) {
 				int index = entry.indexOf(",");
-				if ( index == -1 ) continue;
-				Long date;
-				try {
-					date = Long.parseLong(entry.substring(0,index));
-				} catch (Exception e) {
-					myLogger.warn("Could not parse date of entry: "+entry+". Returning null value");
+				if (index == -1) {
 					continue;
 				}
-				String value = entry.substring(index+1);
+				Long date;
+				try {
+					date = Long.parseLong(entry.substring(0, index));
+				} catch (Exception e) {
+					myLogger.warn("Could not parse date of entry: " + entry
+							+ ". Returning null value");
+					continue;
+				}
+				String value = entry.substring(index + 1);
 				node.addEntry(value, new Date(date));
 			}
-			
+
 			nodes.put(key, node);
 		}
-		
+
 		return node;
+	}
+
+	public String getLastEntry(String key) {
+		return getEntries(key).get(getEntries(key).size() - 1);
+	}
+
+	public int getMaxNumberOfEntries(String key) {
+
+		int max = -1;
+		max = getHistoryNode(key).getNumberOfEntries();
+		// config.clearProperty(key+"_max");
+		// config.setProperty(key+"_max", max);
+		return max;
 	}
 
 	public void setDefaultNumberOfEntriesPerNode(int i) {
 		config.clearProperty("default_max");
 		config.setProperty("default_max", i);
-		
-	}
 
-	public int getMaxNumberOfEntries(String key) {
-		
-		int max = -1;
-		max = getHistoryNode(key).getNumberOfEntries();
-//		config.clearProperty(key+"_max");
-//		config.setProperty(key+"_max", max);
-		return max;
 	}
 
 	public void setMaxNumberOfEntries(String key, int max) {
 		getHistoryNode(key).setMaxNumberOfEntries(max);
-//		config.clearProperty(key+"_max");
-//		config.setProperty(key+"_max", max);
-	}
-	
-	public List<String> getEntries(String key) {
-		return getHistoryNode(key).getEntries();
+		// config.clearProperty(key+"_max");
+		// config.setProperty(key+"_max", max);
 	}
 
 }
