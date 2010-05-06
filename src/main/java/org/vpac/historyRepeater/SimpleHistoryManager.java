@@ -97,7 +97,7 @@ public class SimpleHistoryManager implements HistoryManager {
 		if (node == null) {
 
 			String[] entries = config.getStringArray(key);
-			
+
 			int maxEntries = getMaxNumberOfEntries(key);
 			// try {
 			// maxEntries = config.getInt(key+"_max");
@@ -132,32 +132,35 @@ public class SimpleHistoryManager implements HistoryManager {
 	}
 
 	public String getLastEntry(String key) {
+		if (getEntries(key).size() == 0) {
+			return null;
+		}
 		return getEntries(key).get(0);
+	}
+
+	public int getMaxNumberOfEntries(String key) {
+		if (nodes.get(key) != null) {
+			return nodes.get(key).getMaxNumberOfEntries();
+		}
+		int entries = config.getInt("default_max_" + key, -1);
+		if (entries <= 0) {
+			return getDefaultNumberOfEntriesPerNode();
+		} else {
+			return entries;
+		}
 	}
 
 	public void setDefaultNumberOfEntriesPerNode(int i) {
 		config.clearProperty("default_maximum_entries");
 		config.setProperty("default_maximum_entries", i);
 	}
-	
+
 	public void setMaxNumberOfEntries(String key, int max) {
 		getHistoryNode(key).setMaxNumberOfEntries(max);
 
-		config.clearProperty("default_max_"+key);
-		config.setProperty("default_max_"+key, max);
-		
-	}
-	
-	public int getMaxNumberOfEntries(String key) {
-		if ( nodes.get(key) != null ) {
-			return nodes.get(key).getMaxNumberOfEntries();
-		}
-		int entries = config.getInt("default_max_"+key, -1);
-		if ( entries <= 0 ) {
-			return getDefaultNumberOfEntriesPerNode();
-		} else {
-			return entries;
-		}
+		config.clearProperty("default_max_" + key);
+		config.setProperty("default_max_" + key, max);
+
 	}
 
 }
