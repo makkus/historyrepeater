@@ -132,7 +132,7 @@ public class SimpleHistoryManager implements HistoryManager {
 	}
 
 	public String getLastEntry(String key) {
-		if (getEntries(key).size() == 0) {
+		if (getEntries(key) == null || getEntries(key).size() == 0) {
 			return null;
 		}
 		return getEntries(key).get(0);
