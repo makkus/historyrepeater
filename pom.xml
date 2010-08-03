@@ -42,9 +42,9 @@
 	</pluginRepositories>
 	
 	<scm>
-		<connection>scm:git:git://git@code.arcs.org.au:arcs-java-commons/helpdesk.git
+		<connection>scm:git:git://code.arcs.org.au:arcs-java-commons/helpdesk.git
 		</connection>
-		<url>scm:git:git://git@code.arcs.org.au:arcs-java-commons/helpdesk.git
+		<url>scm:git://git@code.arcs.org.au:arcs-java-commons/helpdesk.git
 		</url>
 	</scm>
 
