@@ -8,7 +8,9 @@ import java.util.Map;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.log4j.Logger;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.vpac.historyRepeater.model.HistoryNode;
 
 /**
@@ -20,8 +22,7 @@ import org.vpac.historyRepeater.model.HistoryNode;
  */
 public class SimpleHistoryManager implements HistoryManager {
 
-	static final Logger myLogger = Logger.getLogger(SimpleHistoryManager.class
-			.getName());
+	static final Logger myLogger = LoggerFactory.getLogger(SimpleHistoryManager.class);
 
 	public Map<String, HistoryNode> nodes = new HashMap<String, HistoryNode>();
 
@@ -33,7 +34,7 @@ public class SimpleHistoryManager implements HistoryManager {
 			config.setDelimiterParsingDisabled(true);
 			config.load(configFile);
 			config.setFile(configFile);
-			config.setAutoSave(true);
+			config.setAutoSave(false);
 		} catch (ConfigurationException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -47,8 +48,25 @@ public class SimpleHistoryManager implements HistoryManager {
 	public void addHistoryEntry(String key, String entry, Date date) {
 		addHistoryEntry(key, entry, date, -1);
 	}
+	
+	private synchronized void save() {
+		try {
+			config.save();
+		} catch (ConfigurationException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private synchronized void changeProperty(String key, Object value) {
+		if ( value == null || (value instanceof String && StringUtils.isBlank((String)value)) ) {
+			config.clearProperty(key);
+		} else {
+			config.addProperty(key, value);
+		}
+		save();
+	}
 
-	public void addHistoryEntry(String key, String entry, Date date,
+	public synchronized void addHistoryEntry(String key, String entry, Date date,
 			int numberOfEntriesForParentNode) {
 
 		if (entry == null || "".equals(entry.trim())) {
@@ -62,16 +80,20 @@ public class SimpleHistoryManager implements HistoryManager {
 		}
 		getHistoryNode(key).addEntry(entry, date);
 
-		config.clearProperty(key);
+		changeProperty(key, null);
+		//config.clearProperty(key);
 		String[] new_prop = new String[getHistoryNode(key).getEntries().size()];
 		int i = 0;
 		for (Date dateKey : getHistoryNode(key).getEntriesMap().keySet()) {
 			new_prop[i] = new Long(dateKey.getTime()).toString() + ","
 					+ getHistoryNode(key).getEntriesMap().get(dateKey);
 
-			config.addProperty(key, new_prop[i]);
+			changeProperty(key, new_prop[i]);
+			//config.addProperty(key, new_prop[i]);
 			i++;
 		}
+		
+//		save();
 
 	}
 
@@ -80,8 +102,11 @@ public class SimpleHistoryManager implements HistoryManager {
 			int def = config.getInt("default_maximum_entries");
 			return def;
 		} catch (Exception e) {
-			config.clearProperty("default_max");
-			config.setProperty("default_max", DEFAULT_NUMBER_OF_ENTRIES);
+			changeProperty("default_max", null);
+			changeProperty("default_max", DEFAULT_NUMBER_OF_ENTRIES);
+			//config.clearProperty("default_max");
+			//config.setProperty("default_max", DEFAULT_NUMBER_OF_ENTRIES);
+			//save();
 			return DEFAULT_NUMBER_OF_ENTRIES;
 		}
 	}
@@ -150,16 +175,23 @@ public class SimpleHistoryManager implements HistoryManager {
 		}
 	}
 
-	public void setDefaultNumberOfEntriesPerNode(int i) {
-		config.clearProperty("default_maximum_entries");
-		config.setProperty("default_maximum_entries", i);
+	public synchronized void setDefaultNumberOfEntriesPerNode(int i) {
+		changeProperty("default_maximum_entries", null);
+		changeProperty("default_maximum_entries", i);
+		//config.clearProperty("default_maximum_entries");
+		//config.setProperty("default_maximum_entries", i);
+//		save();
 	}
 
-	public void setMaxNumberOfEntries(String key, int max) {
+	public synchronized void setMaxNumberOfEntries(String key, int max) {
 		getHistoryNode(key).setMaxNumberOfEntries(max);
 
-		config.clearProperty("default_max_" + key);
-		config.setProperty("default_max_" + key, max);
+		changeProperty("default_max_"+key, null);
+		changeProperty("default_max_"+key, max);
+		//config.clearProperty("default_max_" + key);
+		//config.setProperty("default_max_" + key, max);
+		
+//		save();
 
 	}
 
